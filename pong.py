@@ -280,10 +280,6 @@ def main(autotest=False, pelny_ekran=False, poziom=None):
                         (SZEROKOSC // 2, WYSOKOSC // 2 + WYSOKOSC // 10))
         elif pauza:
             rysuj_napis(ekran, czcionka, "PAUZA", (SZEROKOSC // 2, WYSOKOSC // 2))
-        elif poziom_ai is not None:
-            # w trakcie gry zostaje sam poziom przeciwnika — legenda klawiszy jest w menu
-            rysuj_napis(ekran, czcionka_mala, f"komputer: {POZIOMY[poziom_ai][0]}",
-                        (SZEROKOSC // 2, WYSOKOSC - WYSOKOSC // 24))
 
         pygame.display.flip()
         zegar.tick(0 if autotest else FPS)   # w autoteście bez limitu klatek
