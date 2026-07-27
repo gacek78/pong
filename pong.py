@@ -29,7 +29,7 @@ SZARY = (80, 80, 80)
 # Martwa strefa to tolerancja, ponizej ktorej komputer nie reaguje — im wieksza, tym bardziej
 # niemrawy przeciwnik. Na latwym komputer jest wolniejszy od gracza, na trudnym minimalnie szybszy.
 POZIOMY = {
-    1: ("latwy", 0.60, 0.45),
+    1: ("latwy", 0.55, 0.45),
     2: ("sredni", 0.85, 0.25),
     3: ("trudny", 1.05, 0.10),
 }

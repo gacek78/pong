@@ -60,7 +60,7 @@ której nie reaguje. Parametry siedzą w słowniku `POZIOMY` w `pong.py`:
 
 | Poziom | Prędkość paletki | Martwa strefa |
 |---|---|---|
-| łatwy | 0,60× gracza | 0,45 wysokości paletki |
+| łatwy | 0,55× gracza | 0,45 wysokości paletki |
 | średni | 0,85× | 0,25 |
 | trudny | 1,05× | 0,10 |
 
