@@ -193,11 +193,14 @@ def main(autotest=False, pelny_ekran=False, poziom=None):
         if w_menu:
             ekran.fill(CZARNY)
             rysuj_napis(ekran, czcionka, "PONG", (SZEROKOSC // 2, WYSOKOSC // 4))
+            # legenda klawiszy jest tylko tutaj — ekran gry ma zostac czysty
             pozycje = ["1 - z komputerem (latwy)",
                        "2 - z komputerem (sredni)",
                        "3 - z komputerem (trudny)",
                        "4 - dwoje graczy",
                        "",
+                       "gracz 1: W / S          gracz 2: strzalki gora / dol",
+                       "spacja - pauza          F11 - pelny ekran",
                        "ESC - wyjscie"]
             for i, tekst in enumerate(pozycje):
                 rysuj_napis(ekran, czcionka_mala, tekst,
@@ -277,13 +280,9 @@ def main(autotest=False, pelny_ekran=False, poziom=None):
                         (SZEROKOSC // 2, WYSOKOSC // 2 + WYSOKOSC // 10))
         elif pauza:
             rysuj_napis(ekran, czcionka, "PAUZA", (SZEROKOSC // 2, WYSOKOSC // 2))
-        else:
-            if poziom_ai is None:
-                sterowanie = "W/S    strzalki    spacja: pauza    F11: pelny ekran"
-            else:
-                sterowanie = (f"W/S    komputer: {POZIOMY[poziom_ai][0]}"
-                              "    spacja: pauza    F11: pelny ekran")
-            rysuj_napis(ekran, czcionka_mala, sterowanie,
+        elif poziom_ai is not None:
+            # w trakcie gry zostaje sam poziom przeciwnika — legenda klawiszy jest w menu
+            rysuj_napis(ekran, czcionka_mala, f"komputer: {POZIOMY[poziom_ai][0]}",
                         (SZEROKOSC // 2, WYSOKOSC - WYSOKOSC // 24))
 
         pygame.display.flip()
