@@ -138,6 +138,7 @@ def main(autotest=False, pelny_ekran=False, poziom=None):
     pilka = pygame.Rect(pilka_x, pilka_y, ROZMIAR_PILKI, ROZMIAR_PILKI)
 
     punkty1 = punkty2 = 0
+    punkty2_lacznie = 0    # dorobek prawej paletki z calego autotestu; punkty2 zeruje sie co mecz
     pauza = False
     zwyciezca = None
     klatka = 0
@@ -250,6 +251,7 @@ def main(autotest=False, pelny_ekran=False, poziom=None):
             # --- punktacja ---
             if pilka.right < 0:
                 punkty2 += 1
+                punkty2_lacznie += 1
                 pilka_x, pilka_y, predkosc_x, predkosc_y = reset_pilki(1)
                 pilka.topleft = (round(pilka_x), round(pilka_y))
             elif pilka.left > SZEROKOSC:
@@ -295,8 +297,10 @@ def main(autotest=False, pelny_ekran=False, poziom=None):
                 rozpocznij_mecz = True    # kolejny mecz, zeby test caly czas cwiczyl rozgrywke
             klatka += 1
             if klatka >= KLATEK_AUTOTESTU:
-                assert punkty2 > 0, "komputer nie zdobyl ani punktu przeciw nieruchomej paletce"
-                print(f"autotest OK: {klatka} klatek, ostatni wynik {punkty1}:{punkty2}")
+                assert punkty2_lacznie > 0, \
+                    f"komputer nie zdobyl ani punktu przeciw nieruchomej paletce w {klatka} klatkach"
+                print(f"autotest OK: {klatka} klatek, komputer zdobyl {punkty2_lacznie} pkt, "
+                      f"ostatni wynik {punkty1}:{punkty2}")
                 pygame.quit()
                 return
 
