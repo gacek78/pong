@@ -66,15 +66,37 @@ której nie reaguje. Parametry siedzą w słowniku `POZIOMY` w `pong.py`:
 
 ## Autotest
 
-Gra ma wbudowany tryb testowy — przelatuje 1800 klatek bez otwierania okna i asercjami
-pilnuje niezmienników: piłka nie utyka w paletce, nie ucieka poza pole w pionie, paletka
-komputera nie wyjeżdża poza ekran, a komputer zdobywa punkty przeciw nieruchomemu graczowi.
+Gra ma wbudowany tryb testowy — przelatuje 1800 klatek bez otwierania okna, sterując
+prawą paletką komputerem, a lewą zostawiając nieruchomo na środku.
 
 ```bash
 SDL_VIDEODRIVER=dummy .venv\Scripts\python.exe pong.py --autotest
 ```
 
 W PowerShellu: `$env:SDL_VIDEODRIVER = 'dummy'` w osobnej linii przed poleceniem.
+Domyślnie testuje poziom średni; `--poziom 1|3` sprawdza pozostałe.
+
+Wynik przy powodzeniu:
+
+```
+autotest OK: 1800 klatek, komputer zdobyl 5 pkt, ostatni wynik 0:0
+```
+
+Sprawdzane są cztery warunki — trzy niezmienniki po każdej klatce i jeden na końcu:
+
+| Warunek | Co wyłapuje |
+|---|---|
+| piłka nie zachodzi na żadną paletkę | zakleszczenie piłki wewnątrz paletki |
+| piłka mieści się w polu w pionie | ucieczka poza górną lub dolną krawędź |
+| paletka komputera mieści się w polu | brak ograniczenia ruchu AI |
+| komputer zdobył co najmniej jeden punkt | AI, które przestało trafiać w piłkę |
+
+Ostatni warunek liczy **dorobek całego przebiegu**, a nie wynik bieżącego meczu. Ma to
+znaczenie, bo test restartuje mecz po każdej wygranej, żeby przez całe 1800 klatek ćwiczyć
+rozgrywkę — a restart zeruje tablicę wyników. Dlatego w komunikacie widać dwie liczby:
+łączny dorobek komputera i wynik meczu trwającego w chwili zakończenia testu. Przykład
+wyżej (`5 pkt` przy stanie `0:0`) to normalny przebieg, w którym komputer wygrał mecz
+do pięciu tuż przed ostatnią klatką.
 
 To najszybszy sposób sprawdzenia regresji po zmianie logiki gry.
 
