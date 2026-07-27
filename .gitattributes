@@ -1,0 +1,2 @@
+# Pliki wsadowe musza miec CRLF - cmd.exe zle parsuje .bat z samymi LF.
+*.bat text eol=crlf
