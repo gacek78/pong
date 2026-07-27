@@ -1,7 +1,7 @@
 # Pong
 
 Klasyczny Pong w [pygame](https://www.pygame.org/) — z komputerem na trzech poziomach
-trudności albo we dwoje przy jednej klawiaturze.
+trudności albo we dwoje przy jednej klawiaturze. Gracz 1 może grać klawiaturą lub myszą.
 
 Pole gry dopasowuje się do proporcji monitora (na 16:9 to 1280×720, na 4:3 — 960×720),
 więc obraz wypełnia ekran bez czarnych pasów. Wszystkie rozmiary są ułamkami wysokości,
@@ -32,17 +32,28 @@ Z konsoli:
 .venv\Scripts\python.exe pong.py                 # okno, z menu wyboru przeciwnika
 .venv\Scripts\python.exe pong.py --pelny-ekran   # od razu na pełnym ekranie
 .venv\Scripts\python.exe pong.py --poziom 2      # od razu z komputerem, z pominięciem menu
+.venv\Scripts\python.exe pong.py --mysz          # gracz 1 od startu steruje myszą
 ```
 
-`--poziom` przyjmuje `1` (łatwy), `2` (średni) lub `3` (trudny).
+`--poziom` przyjmuje `1` (łatwy), `2` (średni) lub `3` (trudny). `--mysz` przydaje się
+głównie razem z `--poziom`, bo wtedy menu (a w nim przełącznik sterowania) jest pomijane.
 
 ## Sterowanie
 
+Gracz 1 gra klawiaturą albo myszą — wybór klawiszem `K` w menu, zapamiętywany do końca sesji.
+W trybie myszy paletka podąża za kursorem 1:1, bez ograniczenia prędkości. Działa to także
+w trybie dla dwojga (gracz 1 myszą, gracz 2 strzałkami).
+
+Na czas rozgrywki kursor znika i zostaje przechwycony przez okno — inaczej wyjechałby bokiem
+poza nie, a paletka zamarłaby w miejscu. Kursor wraca do systemu w pauzie (`Spacja`),
+po zakończonym meczu i w menu.
+
 | Klawisz | Działanie |
 |---|---|
-| `W` / `S` | gracz 1 — lewa paletka |
+| `W` / `S` lub mysz | gracz 1 — lewa paletka |
 | `↑` / `↓` | gracz 2 — prawa paletka (w trybie dla dwojga) |
 | `1`–`4` | wybór w menu: komputer łatwy/średni/trudny albo dwoje graczy |
+| `K` | w menu: przełącza sterowanie gracza 1 (klawiatura ↔ mysz) |
 | `Spacja` | pauza |
 | `R` | nowa gra po zakończonym meczu |
 | `M` | powrót do menu po zakończonym meczu |

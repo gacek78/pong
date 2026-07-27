@@ -11,6 +11,7 @@ nie zadziała.
 .venv\Scripts\python.exe pong.py                 # okno, menu wyboru przeciwnika
 .venv\Scripts\python.exe pong.py --pelny-ekran   # od razu pelny ekran (tak startuje graj.bat)
 .venv\Scripts\python.exe pong.py --poziom 2      # pomija menu, od razu z komputerem
+.venv\Scripts\python.exe pong.py --mysz          # gracz 1 od startu steruje mysza
 ```
 
 ## Test
@@ -43,8 +44,21 @@ stałych pikselowych**, rozjadą się na innym ekranie. Okno działa w trybie `S
 więc logika żyje w stałej rozdzielczości, a pygame skaluje obraz.
 
 **Stany gry** to nie maszyna stanów, tylko flagi lokalne w `main()`: `w_menu`, `pauza`,
-`zwyciezca`, `rozpocznij_mecz`, `poziom_ai` (`None` = drugą paletką steruje człowiek).
+`zwyciezca`, `rozpocznij_mecz`, `poziom_ai` (`None` = drugą paletką steruje człowiek),
+`mysz` (sterowanie gracza 1; przełączane klawiszem `K` w menu, domyślnie klawiatura).
 Gałąź menu kończy się `continue`, więc logika rozgrywki jej nie dotyczy.
+
+**Sterowanie myszą** to jedna linia: `paletka1.centery = pygame.mouse.get_pos()[1]` — w trybie
+`SCALED` pygame podaje pozycję kursora już w logicznej rozdzielczości, więc nic nie przeliczamy,
+a `clamp_ip(obszar)` pilnuje krawędzi. Konieczne jest przy tym `pygame.event.set_grab(True)`
+na czas rozgrywki: bez przechwycenia kursor wyjeżdża bokiem poza okno, gra przestaje dostawać
+jego pozycję i paletka zamiera (potwierdzone w grze). Grab i ukrycie kursora liczy jedna flaga
+`chwyc_mysz` przed rysowaniem — w pauzie i po meczu kursor musi wrócić do systemu, inaczej nie
+da się przełączyć na inne okno. Ruch jest 1:1, bez limitu prędkości — świadomie, bo o to
+chodzi w Pongu na myszy. Domyślne `mysz = False` jest **konieczne dla autotestu**: na sterowniku
+`dummy` nie ma kursora, `get_pos()` zwraca (0, 0) i lewa paletka wjechałaby na górę zamiast stać
+nieruchomo. Z tego samego powodu `pygame.mouse.set_pos()` nie działa na `dummy` — chcąc
+przetestować mysz headless, trzeba podmienić `pygame.mouse.get_pos`.
 
 ### Model prędkości piłki
 
@@ -77,6 +91,13 @@ wynik (6 px/klatkę). Sprawdzać efekt liczbowo, nie zakładać.
 - **`toggle_fullscreen()` rzuca `pygame.error` na sterowniku `dummy`.** Dlatego
   `przelacz_pelny_ekran()` zwraca `bool`, a gałąź ESC zamyka grę, gdy przełączenie zawiodło —
   bez tego ESC staje się martwym klawiszem i gry nie da się zamknąć. Nie upraszczać tego z powrotem.
+- **Pętla gry używa `tick_busy_loop()`, nie `tick()`.** Zwykły `tick()` opiera się na `SDL_Delay`
+  i przy granulacji timera Windows gubi klatki: zmierzone 8,8% klatek dłuższych niż 20 ms (ogon
+  do 26 ms) przy oczekiwanych 16,7 ms. `tick_busy_loop()` zbija to do 0,6%. Widać to dopiero przy
+  sterowaniu myszą, bo pozycja jest bezwzględna — zgubiona klatka to zatrzymanie paletki i skok,
+  podczas gdy przyrostowy ruch klawiaturą ją maskuje. Kosztem jest zajęty rdzeń (busy-wait);
+  w menu został zwykły `tick()`, bo statyczny ekran nie potrzebuje równego rytmu.
+  Vsync tu nie pomoże — pomiar pokazał, że jest wyłączony (bez limitu gra kręci ~265 FPS).
 - **Autotest asertuje `punkty2_lacznie`, nie `punkty2`.** Test restartuje mecz po każdej wygranej,
   co zeruje `punkty2`; asercja na nim była niestabilna w ~15% przebiegów. Licznik łączny nie może
   być zerowany przy restarcie.

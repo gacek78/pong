@@ -2,11 +2,13 @@
 
 Po starcie menu pozwala wybrać przeciwnika: komputer (trzy poziomy) lub drugi gracz.
 
-Sterowanie: W/S — gracz 1 (lewa paletka), strzałki góra/dół — gracz 2 (prawa paletka).
+Sterowanie: W/S albo mysz — gracz 1 (lewa paletka), strzałki góra/dół — gracz 2 (prawa paletka).
+Klawisz K w menu przełącza sterowanie gracza 1 między klawiaturą a myszą.
 Spacja — pauza, R — nowa gra po zakończonym meczu, M — powrót do menu,
 F11 (lub Alt+Enter) — pełny ekran, ESC — wyjście z pełnego ekranu, a w oknie zamknięcie gry.
 
-Uruchomienie z opcją --pelny-ekran startuje od razu na pełnym ekranie.
+Uruchomienie z opcją --pelny-ekran startuje od razu na pełnym ekranie, a z --mysz
+od razu ze sterowaniem myszą.
 """
 
 import random
@@ -110,7 +112,7 @@ def rysuj_napis(ekran, czcionka, tekst, srodek):
     ekran.blit(obraz, obraz.get_rect(center=srodek))
 
 
-def main(autotest=False, pelny_ekran=False, poziom=None):
+def main(autotest=False, pelny_ekran=False, poziom=None, mysz_startowo=False):
     pygame.init()
     # pole gry dostaje proporcje monitora, wiec obraz wypelnia go w calosci
     ekran_info = pygame.display.Info()
@@ -143,6 +145,7 @@ def main(autotest=False, pelny_ekran=False, poziom=None):
     zwyciezca = None
     klatka = 0
     poziom_ai = poziom or (2 if autotest else None)   # None = drugą paletką steruje człowiek
+    mysz = mysz_startowo   # sterowanie gracza 1: True = mysz, False = klawiatura
     w_menu = not autotest and poziom is None          # podany poziom pomija menu
     rozpocznij_mecz = False
 
@@ -173,6 +176,8 @@ def main(autotest=False, pelny_ekran=False, poziom=None):
                     elif zdarzenie.key in (pygame.K_4, pygame.K_KP_4):
                         poziom_ai = None
                         w_menu, rozpocznij_mecz = False, True
+                    elif zdarzenie.key == pygame.K_k:
+                        mysz = not mysz
                     continue
 
                 if zdarzenie.key == pygame.K_SPACE and zwyciezca is None:
@@ -192,20 +197,26 @@ def main(autotest=False, pelny_ekran=False, poziom=None):
             pilka.topleft = (round(pilka_x), round(pilka_y))
 
         if w_menu:
+            pygame.mouse.set_visible(True)
+            pygame.event.set_grab(False)
             ekran.fill(CZARNY)
             rysuj_napis(ekran, czcionka, "PONG", (SZEROKOSC // 2, WYSOKOSC // 4))
             # legenda klawiszy jest tylko tutaj — ekran gry ma zostac czysty
+            sterowanie1 = "MYSZ" if mysz else "KLAWIATURA"
             pozycje = ["1 - z komputerem (latwy)",
                        "2 - z komputerem (sredni)",
                        "3 - z komputerem (trudny)",
                        "4 - dwoje graczy",
                        "",
-                       "gracz 1: W / S          gracz 2: strzalki gora / dol",
-                       "spacja - pauza          F11 - pelny ekran",
+                       f"K - sterowanie gracza 1: {sterowanie1}",
+                       "",
+                       "gracz 1: W / S lub mysz     gracz 2: strzalki gora / dol",
+                       "spacja - pauza              F11 - pelny ekran",
                        "ESC - wyjscie"]
+            # odstep i poczatek dobrane tak, by cala legenda zmiescila sie nad dolna krawedzia
             for i, tekst in enumerate(pozycje):
                 rysuj_napis(ekran, czcionka_mala, tekst,
-                            (SZEROKOSC // 2, WYSOKOSC // 2 + i * WYSOKOSC // 16))
+                            (SZEROKOSC // 2, round(WYSOKOSC * 0.44) + i * WYSOKOSC // 18))
             pygame.display.flip()
             zegar.tick(FPS)
             continue
@@ -213,10 +224,14 @@ def main(autotest=False, pelny_ekran=False, poziom=None):
         if zwyciezca is None and not pauza:
             # --- ruch paletek (z ograniczeniem do ekranu) ---
             klawisze = pygame.key.get_pressed()
-            if klawisze[pygame.K_w]:
-                paletka1.y -= PREDKOSC_PALETKI
-            if klawisze[pygame.K_s]:
-                paletka1.y += PREDKOSC_PALETKI
+            if mysz:
+                # tryb SCALED podaje pozycje kursora juz w logicznej rozdzielczosci pola gry
+                paletka1.centery = pygame.mouse.get_pos()[1]
+            else:
+                if klawisze[pygame.K_w]:
+                    paletka1.y -= PREDKOSC_PALETKI
+                if klawisze[pygame.K_s]:
+                    paletka1.y += PREDKOSC_PALETKI
             if poziom_ai is None:
                 if klawisze[pygame.K_UP]:
                     paletka2.y -= PREDKOSC_PALETKI
@@ -264,6 +279,13 @@ def main(autotest=False, pelny_ekran=False, poziom=None):
             elif punkty2 >= PUNKTY_DO_WYGRANEJ:
                 zwyciezca = 2
 
+        # Mysz jest przechwytywana w oknie na czas samej rozgrywki. Bez tego kursor wyjeżdża
+        # bokiem poza okno, gra przestaje dostawać jego pozycję i paletka zamiera. W pauzie
+        # i po meczu kursor wraca do systemu, żeby dało się przełączyć na inne okno.
+        chwyc_mysz = mysz and zwyciezca is None and not pauza
+        pygame.mouse.set_visible(not chwyc_mysz)
+        pygame.event.set_grab(chwyc_mysz)
+
         # --- rysowanie ---
         ekran.fill(CZARNY)
         kreska = WYSOKOSC // 40
@@ -284,7 +306,10 @@ def main(autotest=False, pelny_ekran=False, poziom=None):
             rysuj_napis(ekran, czcionka, "PAUZA", (SZEROKOSC // 2, WYSOKOSC // 2))
 
         pygame.display.flip()
-        zegar.tick(0 if autotest else FPS)   # w autoteście bez limitu klatek
+        # tick_busy_loop zamiast tick: zwykły tick opiera się na SDL_Delay, którego granulacja
+        # na Windowsie gubi co jakiś czas klatkę. Przy sterowaniu myszą (pozycja bezwzględna)
+        # taka klatka to widoczne zatrzymanie paletki i skok. W autoteście bez limitu.
+        zegar.tick_busy_loop(0 if autotest else FPS)
 
         if autotest:
             assert not (pilka.colliderect(paletka1) or pilka.colliderect(paletka2)), \
@@ -314,4 +339,5 @@ if __name__ == "__main__":
             sys.exit(f"--poziom musi byc jednym z: {', '.join(map(str, POZIOMY))}")
     main(autotest="--autotest" in sys.argv,
          pelny_ekran="--pelny-ekran" in sys.argv,
-         poziom=wybrany)
+         poziom=wybrany,
+         mysz_startowo="--mysz" in sys.argv)
